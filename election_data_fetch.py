@@ -30,13 +30,13 @@ nextUrls = []
 def fetchData(st, url, checkNextUrls):
     t1 = time.time()
     soup = None
+    res = False
     df = pd.DataFrame(columns=cols)
     try:
         r = requests.get(url, proxies=proxyDict)
         soup = bs.BeautifulSoup(r.content,'lxml')
     except requests.exceptions.ConnectionError:
         print ("Connection timeout for ", url)
-        nextUrls.append((st, url, True))
     
     if soup:
         table = soup.find_all('table', attrs={'width':'100%'})[4]
@@ -53,9 +53,10 @@ def fetchData(st, url, checkNextUrls):
             tds = tr.find_all('td')
             df = pd.DataFrame([[st, tds[0].text, tds[2].text, tds[4].text, \
                               tds[12].text, tds[14].text, tds[24].text, tds[25].text]], columns = cols)
+            res = True
 
     t2 = time.time()
-    return df
+    return df, res
 
 def runAll():
     checkNextUrls = True
@@ -63,7 +64,11 @@ def runAll():
         url = def_url.format(p)
         url = url.replace(' ', '')
         print (url)
-        fulDf.append(fetchData(states[p], url, checkNextUrls))
+        df, res = fetchData(states[p], url, checkNextUrls)
+        if not res:
+            nextUrls.append((st, url, checkNextUrls))
+        else:
+            fulDf = fulDf.append(df)
 
     for url in set(nextUrls):
         st = url[0]
@@ -72,9 +77,12 @@ def runAll():
         if len(url) > 2:
             checkNextUrls=True
         print (url)
-        fulDf.append(fetchData(st, url, checkNextUrls))
-    return fulDf
-    
+        df, res = fetchData(states[p], url, checkNextUrls)
+        if not res:
+            nextUrls.append((st, url, checkNextUrls))
+        else:
+            fulDf = fulDf.append(df)
+    return fulDf 
   
 
     
