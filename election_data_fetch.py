@@ -24,7 +24,6 @@ states = {
     "U041": "Daman & Diu", "U061": "Lakshadweep", "U051": "NCT OF Delhi", "U071": "Puducherry"}
 
 cols = ["State/UT", "Constituency", "Leading_Candidate", "Leading_Party", "Trailing_Candidate", "Trailing_Party", "Margin", "Status" ]
-fulDf = pd.DataFrame(columns=cols)
 nextUrls = []
 
 def fetchData(st, url, checkNextUrls):
@@ -60,6 +59,7 @@ def fetchData(st, url, checkNextUrls):
 
 def runAll():
     checkNextUrls = True
+    fulDf = pd.DataFrame(columns=cols)
     for i, p in enumerate(states):
         url = def_url.format(p)
         url = url.replace(' ', '')
