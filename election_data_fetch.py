@@ -6,14 +6,23 @@ import bs4 as bs
 import time
 import re
 
-http_proxy  = "http://165.225.104.34:9480"
-https_proxy = "https://165.225.104.34:9480"
+http_proxy   = None # Edit if you are behind any proxy
+https_proxy  = None # Edit if you are behind any proxy
 proxyDict = { "http"  : http_proxy, "https" : https_proxy }
 
 baseUrl = "https://results.eci.gov.in/pc/en/trends/"
 def_url = "https://results.eci.gov.in/pc/en/trends/statewise{0}.htm?st={0}"
 states = {
-"S011" : "Andhra Pradesh"," S021" : "Arunachal Pradesh"," S031" : "Assam"," S041" : "Bihar"," S261" : "Chhattisgarh"," S051" : "Goa"," S061" : "Gujarat"," S071" : "Haryana"," S081" : "Himachal Pradesh"," S091" : "Jammu & Kashmir"," S271" : "Jharkhand"," S101" : "Karnataka"," S111" : "Kerala"," S121" : "Madhya Pradesh"," S131" : "Maharashtra"," S141" : "Manipur"," S151" : "Meghalaya"," S161" : "Mizoram"," S171" : "Nagaland"," S181" : "Odisha"," S191" : "Punjab"," S201" : "Rajasthan"," S211" : "Sikkim"," S221" : "Tamil Nadu"," S291" : "Telangana"," S231" : "Tripura"," S241" : "Uttar Pradesh"," S281" : "Uttarakhand"," S251" : "West Bengal", "U011" : "Andaman & Nicobar Islands", "U021" : "Chandigarh", "U031" : "Dadra & Nagar Haveli", "U041" : "Daman & Diu", "U061" : "Lakshadweep", "U051" : "NCT OF Delhi", "U071" : "Puducherry"}
+"S011": "Andhra Pradesh","S021": "Arunachal Pradesh","S031": "Assam","S041": "Bihar","S261": \
+    "Chhattisgarh","S051": "Goa","S061": "Gujarat","S071": "Haryana","S081": "Himachal Pradesh",\
+    "S091": "Jammu & Kashmir","S271": "Jharkhand","S101": "Karnataka","S111": "Kerala","S121": \
+    "Madhya Pradesh","S131": "Maharashtra","S141": "Manipur","S151": "Meghalaya","S161": \
+    "Mizoram","S171": "Nagaland","S181": "Odisha","S191": "Punjab","S201": "Rajasthan",\
+    "S211": "Sikkim","S221": "Tamil Nadu","S291": "Telangana","S231": "Tripura",\
+    "S241": "Uttar Pradesh","S281": "Uttarakhand","S251": "West Bengal", \
+    "U011": "Andaman & Nicobar Islands", "U021": "Chandigarh", "U031": "Dadra & Nagar Haveli", \
+    "U041": "Daman & Diu", "U061": "Lakshadweep", "U051": "NCT OF Delhi", "U071": "Puducherry"}
+
 cols = ["State/UT", "Constituency", "Leading_Candidate", "Leading_Party", "Trailing_Candidate", "Trailing_Party", "Margin", "Status" ]
 fulDf = pd.DataFrame(columns=cols)
 nextUrls = []
@@ -29,6 +38,7 @@ def fetchData(url):
         for j, tr in enumerate(table_rows):
             if loadNextUrls:
                 refs = table.find_all('a')
+                # for states where results are rendered in multiple html pages
                 if len(refs) > 2:
                     for k in range(2, len(refs)):
                         ref = refs[k]
