@@ -36,7 +36,7 @@ def fetchData(st, url, checkNextUrls):
         soup = bs.BeautifulSoup(r.content,'lxml')
     except requests.exceptions.ConnectionError:
         print ("Connection timeout for ", url)
-        nextUrls.append((st, url))
+        nextUrls.append((st, url, True))
     
     if soup:
         table = soup.find_all('table', attrs={'width':'100%'})[4]
@@ -58,21 +58,27 @@ def fetchData(st, url, checkNextUrls):
     return df
 
 def runAll():
-    
+    checkNextUrls = True
     for i, p in enumerate(states):
         url = def_url.format(p)
         url = url.replace(' ', '')
         print (url)
-        fulDf.append(fetchData(states[p], url, checkNextUrls=True))
+        fulDf.append(fetchData(states[p], url, checkNextUrls))
 
-    for url in nextUrls:
+    for url in set(nextUrls):
         st = url[0]
         url = url[1]
+        checkNextUrls=False
+        if len(url) > 2:
+            checkNextUrls=True
         print (url)
-        fulDf.append(fetchData(st, url, checkNextUrls=False))
-    return fulDf 
+        fulDf.append(fetchData(st, url, checkNextUrls))
+    return fulDf
+    
+  
+
     
 if __name__ == '__main__':
     fulDf = runAll()
-    fulDf.to_csv('election_results.csv')
+    fulDf.to_csv('result_data.csv')
     
