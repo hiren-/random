@@ -6,8 +6,8 @@ import bs4 as bs
 import time
 import re
 
-http_proxy   = None # Edit if you are behind any proxy
-https_proxy  = None # Edit if you are behind any proxy
+http_proxy   = 'http://165.225.104.34:9480'
+https_proxy  = 'https://165.225.104.34:9480'
 proxyDict = { "http"  : http_proxy, "https" : https_proxy }
 
 baseUrl = "https://results.eci.gov.in/pc/en/trends/"
@@ -27,45 +27,52 @@ cols = ["State/UT", "Constituency", "Leading_Candidate", "Leading_Party", "Trail
 fulDf = pd.DataFrame(columns=cols)
 nextUrls = []
 
-def fetchData(url):
+def fetchData(st, url, checkNextUrls):
     t1 = time.time()
-    r = requests.get(url, proxies=proxyDict)
-    soup = bs.BeautifulSoup(r.content,'lxml')
+    soup = None
     df = pd.DataFrame(columns=cols)
     try:
+        r = requests.get(url, proxies=proxyDict)
+        soup = bs.BeautifulSoup(r.content,'lxml')
+    except requests.exceptions.ConnectionError:
+        print ("Connection timeout for ", url)
+        nextUrls.append((st, url))
+    
+    if soup:
         table = soup.find_all('table', attrs={'width':'100%'})[4]
         table_rows = table.find_all('tr', attrs={'style':"font-size:12px;"})
         for j, tr in enumerate(table_rows):
-            if loadNextUrls:
-                refs = table.find_all('a')
-                # for states where results are rendered in multiple html pages
-                if len(refs) > 2:
-                    for k in range(2, len(refs)):
-                        ref = refs[k]
-                        result = re.findall('"([^"]*)"', str(ref))
-                        if '#' not in result[0] and 'nxt' not in result[0] :
-                            nextUrls.append(baseUrl+result[0])
+            refs = table.find_all('a')
+            # for states where results are rendered in multiple html pages
+            if checkNextUrls and len(refs) > 2:
+                for k in range(2, len(refs)):
+                    ref = refs[k]
+                    result = re.findall('"([^"]*)"', str(ref))
+                    if '#' not in result[0] and 'nxt' not in result[0] :
+                        nextUrls.append((st, baseUrl+result[0]))
             tds = tr.find_all('td')
-            df = pd.DataFrame([[states[p], tds[0].text, tds[2].text, tds[4].text, \
+            df = pd.DataFrame([[st, tds[0].text, tds[2].text, tds[4].text, \
                               tds[12].text, tds[14].text, tds[24].text, tds[25].text]], columns = cols)
-    except requests.exceptions.ConnectionError:
-        print "Connection timeout for ", url
+
     t2 = time.time()
     return df
 
-def runAll()
+def runAll():
+    
     for i, p in enumerate(states):
         url = def_url.format(p)
         url = url.replace(' ', '')
-        print url
-        fulDf.append(fetchData(url))
+        print (url)
+        fulDf.append(fetchData(states[p], url, checkNextUrls=True))
 
     for url in nextUrls:
-        url = baseUrl + url
-        print url
-        fulDf.append(fetchData(url))
+        st = url[0]
+        url = url[1]
+        print (url)
+        fulDf.append(fetchData(st, url, checkNextUrls=False))
+    return fulDf 
     
-  
 if __name__ == '__main__':
-    runAll()
+    fulDf = runAll()
+    fulDf.to_csv('election_results.csv')
     
