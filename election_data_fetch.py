@@ -63,11 +63,11 @@ def runAll():
         print (url)
         df, res = fetchData(states[p], url, checkNextUrls)
         if not res:
-            nextUrls.append((st, url, checkNextUrls))
+            nextUrls.append((states[p], url, checkNextUrls))
         else:
             fulDf = fulDf.append(df)        
 
-    for url in set(nextUrls):
+    for url in nextUrls:
         st = url[0]
         url = url[1]
         checkNextUrls=False
@@ -85,4 +85,3 @@ def runAll():
 if __name__ == '__main__':
     fulDf = runAll()
     fulDf.to_csv('result_data.csv')
-    
