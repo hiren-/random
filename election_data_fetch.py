@@ -27,6 +27,7 @@ cols = ["State/UT", "Constituency", "Leading_Candidate", "Leading_Party", "Trail
 nextUrls = []
 
 def fetchData(st, url, checkNextUrls):
+    global nextUrls
     soup = None
     res = False
     df = pd.DataFrame(columns=cols)
@@ -47,7 +48,7 @@ def fetchData(st, url, checkNextUrls):
                     ref = refs[k]
                     result = re.findall('"([^"]*)"', str(ref))
                     if '#' not in result[0] and 'nxt' not in result[0] :
-                        nextUrls.append((st, baseUrl+result[0]))
+                        nextUrls.append((st, baseUrl + result[0]))
             tds = tr.find_all('td')
             df = df.append(pd.DataFrame([[st, tds[0].text, tds[2].text, tds[4].text, \
                               tds[12].text, tds[14].text, tds[24].text, tds[25].text]], columns = cols))
@@ -55,6 +56,7 @@ def fetchData(st, url, checkNextUrls):
     return df, res
 
 def runAll():
+    global nextUrls
     checkNextUrls = True
     fulDf = pd.DataFrame(columns=cols)
     for i, p in enumerate(states):
@@ -66,8 +68,8 @@ def runAll():
             nextUrls.append((states[p], url, checkNextUrls))
         else:
             fulDf = fulDf.append(df)        
-
-    for url in nextUrls:
+    
+    for url in list(set(nextUrls)):
         st = url[0]
         url = url[1]
         checkNextUrls=False
@@ -79,7 +81,7 @@ def runAll():
             nextUrls.append((st, url, checkNextUrls))
         else:
             fulDf = fulDf.append(df)
-        break        
+                
     return fulDf
     
 if __name__ == '__main__':
