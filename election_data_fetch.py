@@ -27,7 +27,6 @@ cols = ["State/UT", "Constituency", "Leading_Candidate", "Leading_Party", "Trail
 nextUrls = []
 
 def fetchData(st, url, checkNextUrls):
-    t1 = time.time()
     soup = None
     res = False
     df = pd.DataFrame(columns=cols)
@@ -50,11 +49,9 @@ def fetchData(st, url, checkNextUrls):
                     if '#' not in result[0] and 'nxt' not in result[0] :
                         nextUrls.append((st, baseUrl+result[0]))
             tds = tr.find_all('td')
-            df = pd.DataFrame([[st, tds[0].text, tds[2].text, tds[4].text, \
-                              tds[12].text, tds[14].text, tds[24].text, tds[25].text]], columns = cols)
+            df = df.append(pd.DataFrame([[st, tds[0].text, tds[2].text, tds[4].text, \
+                              tds[12].text, tds[14].text, tds[24].text, tds[25].text]], columns = cols))
             res = True
-
-    t2 = time.time()
     return df, res
 
 def runAll():
@@ -68,7 +65,7 @@ def runAll():
         if not res:
             nextUrls.append((st, url, checkNextUrls))
         else:
-            fulDf = fulDf.append(df)
+            fulDf = fulDf.append(df)        
 
     for url in set(nextUrls):
         st = url[0]
@@ -82,9 +79,8 @@ def runAll():
             nextUrls.append((st, url, checkNextUrls))
         else:
             fulDf = fulDf.append(df)
-    return fulDf 
-  
-
+        break        
+    return fulDf
     
 if __name__ == '__main__':
     fulDf = runAll()
