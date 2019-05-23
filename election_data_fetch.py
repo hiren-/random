@@ -6,8 +6,8 @@ import bs4 as bs
 import time
 import re
 
-http_proxy   = 'http://165.225.104.34:9480'
-https_proxy  = 'https://165.225.104.34:9480'
+http_proxy   = '' # Edit if you are behind corporate proxy  schema 'username@password:http://url:port'
+https_proxy  = '' # Edit if you are behind corporate proxy  schema 'username@password:https://url:port'
 proxyDict = { "http"  : http_proxy, "https" : https_proxy }
 
 baseUrl = "https://results.eci.gov.in/pc/en/trends/"
